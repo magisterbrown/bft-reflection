@@ -246,7 +246,7 @@ public final class DeliveryThread extends Thread {
                     init = false;
 					/** AWARE **/
 					if (controller.getStaticConf().isUseDynamicWeights())
-						Monitor.getInstance(controller).startSync();
+						Monitor.getInstance(controller).startSync(tomLayer.execManager);
 					/** End AWARE **/
                 }
             }
