@@ -45,7 +45,12 @@ public class MonitoringDataSynchronizer {
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                long[] delays = new long[5];
+                //TODO: manage changing viewN
+                Long[] writeLatencies = Monitor.getInstance(svc).getFreshestWriteLatencies();
+                Long[] proposeLatencies = Monitor.getInstance(svc).getFreshestProposeLatencies();
+
+                int viewN = svc.getCurrentViewN();
+                long[] delays = new long[viewN];
                 Arrays.fill(delays, 0);
                 for(Integer cid: List.copyOf(execManager.getConsensuses())){
                     if(cid == -1)
@@ -74,32 +79,29 @@ public class MonitoringDataSynchronizer {
                     long writeTime = cons.getDecision().firstMessageProposed.writeSentTime;
                     for (int i = 0; i < ep.getWriteTimes().length; i++) {
                         long delay = 0;
-                        long est = proposeTime - propose[leader_index][my_index] + propose[leader_index][i] + write[i][my_index];
+                        long estPropSent = proposeTime - propose[leader_index][my_index];
+                        long est =  estPropSent + propose[leader_index][i] + write[i][my_index];
+                        long real = ep.getWriteTimes()[i];
                         if(ep.getWriteSetted()[i]){
-                            delay = ep.getWriteTimes()[i] - est;
+                            delay = real - est;
                             //System.out.println("Delayed by: " + NsToS(delay) + " from: " + i);
                         }
                         else{
                             delay = writeTime  - est;
-                            System.out.println("Did not arrive for: " + NsToS(delay) + " from: " + i);
                         }
                         if(delays[i]<delay)
                             delays[i] = delay;
-                            //if(!delays.containsKey(i) || delays.get(i)<delay)
-                            //    delays.put(i, delay);
-                            //System.out.println("Delay for write "+ (real-est) + " from " + i);
-                            //System.out.println("Prop to write "+ (real-ep.proposeTime));
-                            //System.out.println("Real "+real);
-                            //System.out.println("Est "+est);
+                        if(delay>1000 && proposeLatencies[i] + writeLatencies[i] < real-estPropSent ){
+                            writeLatencies[i]+=(real-estPropSent)-(writeLatencies[i]+proposeLatencies[i]);
+                            System.out.println("Latency increased: " + NsToS(writeLatencies[i]) + " to: " + i);
+                        }
                     }
                 }
-                for(int i=0; i<5;i++){
+                for(int i=0; i<viewN;i++){
                     System.out.println("Delayed by: " + NsToS(delays[i]) + " from: " + i);
                 }
 
                 // Get freshest write latenciesfrom Monitor
-                Long[] writeLatencies = Monitor.getInstance(svc).getFreshestWriteLatencies();
-                Long[] proposeLatencies = Monitor.getInstance(svc).getFreshestProposeLatencies();
 
                 Measurements li = new Measurements(svc.getCurrentViewN(), writeLatencies, proposeLatencies);
                 byte[] data = li.toBytes();
