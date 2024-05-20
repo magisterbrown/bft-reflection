@@ -89,17 +89,17 @@ public class MonitoringDataSynchronizer {
                         else{
                             delay = writeTime  - est;
                         }
-                        if(delays[i]<delay)
-                            delays[i] = delay;
+                        //if(delays[i]<delay)
+                        //    delays[i] = delay;
                         if(delay>1000 && proposeLatencies[i] + writeLatencies[i] < real-estPropSent ){
                             writeLatencies[i]+=(real-estPropSent)-(writeLatencies[i]+proposeLatencies[i]);
-                            System.out.println("Latency increased: " + NsToS(writeLatencies[i]) + " to: " + i);
+                            //System.out.println("Latency increased: " + NsToS(writeLatencies[i]) + " to: " + i);
                         }
                     }
                 }
-                for(int i=0; i<viewN;i++){
-                    System.out.println("Delayed by: " + NsToS(delays[i]) + " from: " + i);
-                }
+                //for(int i=0; i<viewN;i++){
+                //    System.out.println("Delayed by: " + NsToS(delays[i]) + " from: " + i);
+                //}
 
                 // Get freshest write latenciesfrom Monitor
 
