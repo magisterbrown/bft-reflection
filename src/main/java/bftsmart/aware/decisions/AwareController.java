@@ -116,6 +116,15 @@ public class AwareController {
             propose = write;
         }
 
+        //Visualization
+        System.out.println("Write latencies");
+        for (int i = 0; i < write.length; i++) {
+            for (int j = 0; j < write[i].length; j++) {
+                System.out.print(write[i][j] + " ");
+            }
+            System.out.println(); // Move to the next line after printing each row
+        }
+
         int cid = executionManager.getTOMLayer().getLastExec();
 
         currentDW = new AwareConfiguration(current, executionManager.getCurrentLeader());
