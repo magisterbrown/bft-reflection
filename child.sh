@@ -2,7 +2,8 @@
 
 # Function to start a process in the background
 start_process() {
-    ip netns exec clust$1 java -Djava.security.properties="./config/java.security" -Dlogback.configurationFile="./config/logback.xml" -cp "build/install/library/lib/*"  bftsmart.demo.counter.CounterServer $1 &
+    echo $1
+    ip netns exec clust$(( $1 + 1 )) java -Djava.security.properties="./config/java.security" -Dlogback.configurationFile="./config/logback.xml" -cp "build/install/library/lib/*"  bftsmart.demo.counter.CounterServer $1  &
     # Store the process ID (PID) in an array
     pids+=("$!")
     echo $pids
@@ -26,7 +27,7 @@ declare -a pids
 
 # Start multiple processes
 echo "Starting processes..."
-for ((i = 1; i <= 4; i++)); do
+for ((i = 1; i <= 7; i++)); do
     start_process $i
 done
 
