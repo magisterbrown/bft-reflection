@@ -73,7 +73,7 @@ public class MonitoringDataSynchronizer {
 
                     int leader_index = cons.getDecision().getLeader();
                     //leader_index = 0;
-                    if(leader_index < 0 || leader_index >= propose.length)
+                    if(leader_index < 0 || leader_index >= propose.length || leader_index==3 || leader_index == 5)
                         continue;
 
                     long proposeTime = cons.getDecision().firstMessageProposed.proposeReceivedTime;
@@ -84,20 +84,20 @@ public class MonitoringDataSynchronizer {
                         long delay = 0;
                         long estPropSent = proposeTime - propose[leader_index][my_index];
                         long est =  estPropSent + (propose[leader_index][i] + write[i][my_index]);
-                        long real;
+                        long real = ep.getWriteTimes()[i];
                         String ms;
                         if(ep.getWriteSetted()[i]){
-                            real = ep.getWriteTimes()[i];
+                            delay = real - est;
                             ms = "Delayed by ";  
                         }
                         else{
-                            if(acceptTime>0)
-                                real = acceptTime;
-                            else
-                                real = System.nanoTime();
+                            //if(acceptTime>0)
+                            //    real = acceptTime;
+                            //else
+                            //    real = Monitor.MISSING_VALUE;
+                            delay = Monitor.MISSING_VALUE;
                             ms = "Did not arrive: ";
                         }
-                        delay = real - est;
                         if(delay>writeLatencies[i]){
                                 System.out.println("Leader: "+leader_index);
                                 System.out.println(ms + delay + " from: " + i);
