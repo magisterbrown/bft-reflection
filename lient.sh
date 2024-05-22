@@ -12,6 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-ip netns exec clust9 java -Djava.security.properties="./config/java.security" -Dlogback.configurationFile="./config/logback.xml" -classpath "build/install/library/lib/*"  bftsmart.demo.counter.CounterClient 1001 100 8
+ip netns exec clust9 java -Djava.security.properties="./config/java.security" -Dlogback.configurationFile="./config/logback.xml" -classpath "build/install/library/lib/*"  bftsmart.demo.counter.CounterClient 1001 100 300
 #jdb -sourcepath ./src/main/java -Djava.security.properties="./config/java.security" -Dlogback.configurationFile="./config/logback.xml" -classpath "build/install/library/lib/*"  bftsmart.demo.counter.CounterClient 1001 100 8
 

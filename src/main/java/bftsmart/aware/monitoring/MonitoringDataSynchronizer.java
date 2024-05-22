@@ -50,6 +50,7 @@ public class MonitoringDataSynchronizer {
                 Long[] proposeLatencies = Monitor.getInstance(svc).getFreshestProposeLatencies();
 
                 int viewN = svc.getCurrentViewN();
+                int my_index = svc.getStaticConf().getProcessId();
                 long[] delays = new long[viewN];
                 Arrays.fill(delays, 0);
                 for(Integer cid: List.copyOf(execManager.getConsensuses())){
@@ -70,32 +71,63 @@ public class MonitoringDataSynchronizer {
                     if (!svc.getStaticConf().isUseDummyPropose())
                         propose = write;
 
-                    int my_index = svc.getStaticConf().getProcessId();
-                    int leader_index = cons.getDecision().firstMessageProposed.getSender();
+                    int leader_index = cons.getDecision().getLeader();
+                    //leader_index = 0;
                     if(leader_index < 0 || leader_index >= propose.length)
                         continue;
 
                     long proposeTime = cons.getDecision().firstMessageProposed.proposeReceivedTime;
-                    long writeTime = cons.getDecision().firstMessageProposed.writeSentTime;
+                    long acceptTime = cons.getDecision().firstMessageProposed.acceptSentTime;
                     for (int i = 0; i < ep.getWriteTimes().length; i++) {
+                        if(i==my_index || propose[leader_index][my_index] == Monitor.MISSING_VALUE)
+                            continue;
                         long delay = 0;
                         long estPropSent = proposeTime - propose[leader_index][my_index];
-                        long est =  estPropSent + propose[leader_index][i] + write[i][my_index];
-                        long real = ep.getWriteTimes()[i];
+                        long est =  estPropSent + (propose[leader_index][i] + write[i][my_index]);
+                        long real;
+                        String ms;
                         if(ep.getWriteSetted()[i]){
-                            delay = real - est;
-                            //System.out.println("Delayed by: " + NsToS(delay) + " from: " + i);
+                            real = ep.getWriteTimes()[i];
+                            ms = "Delayed by ";  
                         }
                         else{
-                            delay = writeTime  - est;
+                            if(acceptTime>0)
+                                real = acceptTime;
+                            else
+                                real = System.nanoTime();
+                            ms = "Did not arrive: ";
+                        }
+                        delay = real - est;
+                        if(delay>writeLatencies[i]){
+                                System.out.println("Leader: "+leader_index);
+                                System.out.println(ms + delay + " from: " + i);
+                                System.out.println("Propose: "+ proposeTime);
+                                System.out.println("Est Propose: "+ estPropSent);
+                                System.out.println("Expected: "+ NsToS(est-estPropSent));
+                                System.out.println("Actual: "+ NsToS(real-estPropSent));
+                                System.out.println("\n");
                         }
                         //if(delays[i]<delay)
                         //    delays[i] = delay;
-                        if(delay>1000 && proposeLatencies[i] + writeLatencies[i] < real-estPropSent ){
-                            writeLatencies[i]+=(real-estPropSent)-(writeLatencies[i]+proposeLatencies[i]);
-                            //System.out.println("Latency increased: " + NsToS(writeLatencies[i]) + " to: " + i);
-                        }
+                        //if(delay>writeLatencies[i] && proposeLatencies[i] + writeLatencies[i] < real-estPropSent){
+                        //    writeLatencies[i]+=(real-estPropSent)-(writeLatencies[i]+proposeLatencies[i]);
+                        //    System.out.println("Latency increased: " + NsToS(writeLatencies[i]) + " to: " + i);
+                        //}
                     }
+                }
+                //BYZANTINE nodes:
+                Long lat = (long) 23;
+                if(my_index == 3 ){
+                    //Arrays.fill(writeLatencies, (long)22);
+                    //Arrays.fill(proposeLatencies, (long)22);
+                    writeLatencies[5] = lat;
+                    proposeLatencies[5] = lat;
+                }
+                if(my_index == 5){
+                    //Arrays.fill(writeLatencies, (long)22);
+                    //Arrays.fill(proposeLatencies, (long)22);
+                    writeLatencies[3] = lat;
+                    proposeLatencies[3] = lat;
                 }
                 //for(int i=0; i<viewN;i++){
                 //    System.out.println("Delayed by: " + NsToS(delays[i]) + " from: " + i);

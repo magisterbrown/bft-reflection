@@ -88,6 +88,9 @@ public class MessageHandler {
             }
             /** END AWARE **/
 
+            //if(myId == 3 || myId == 5)
+            //    return;
+
 			if (consMsg.authenticated || consMsg.getSender() == myId)
 				acceptor.deliver(consMsg);
 			else {

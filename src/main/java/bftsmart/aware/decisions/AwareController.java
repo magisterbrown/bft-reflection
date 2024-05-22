@@ -119,8 +119,10 @@ public class AwareController {
         //Visualization
         System.out.println("Write latencies");
         for (int i = 0; i < write.length; i++) {
+
             for (int j = 0; j < write[i].length; j++) {
-                System.out.print(write[i][j] + " ");
+                //System.out.print(write[i][j] + " ");
+                System.out.print(String.format("%18d", write[i][j]));
             }
             System.out.println(); // Move to the next line after printing each row
         }
@@ -225,6 +227,10 @@ public class AwareController {
             logger.info("!!! Best: " + best);
             logger.info("");
 
+            System.out.println("");
+            System.out.println("!!! Best: " + best);
+            System.out.println("");
+
             if (svc.getStaticConf().isUseDynamicWeights()
                     && !currentWeights.equals(bestWeights)
                     && current.getPredictedLatency() > best.getPredictedLatency() * svc.getStaticConf().getOptimizationGoal()) {
@@ -245,7 +251,7 @@ public class AwareController {
                         " current weight config is the best weight config");
             }
 
-            if (svc.getStaticConf().isUseLeaderSelection()
+            if (false && svc.getStaticConf().isUseLeaderSelection()
                     && executionManager.getCurrentLeader() != best.getLeader()
                     && current.getPredictedLatency() > best.getPredictedLatency() * svc.getStaticConf().getOptimizationGoal()) {
 
