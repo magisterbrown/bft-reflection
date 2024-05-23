@@ -462,7 +462,6 @@ public final class TOMLayer extends Thread implements RequestReceiver {
             }
             /** End AWARE **/
 
-            int prid = this.controller.getStaticConf().getProcessId();
             if ((execManager.getCurrentLeader() == this.controller.getStaticConf().getProcessId()) && //I'm the leader
                     (clientsManager.havePendingRequests()) && //there are messages to be ordered
                     (getInExec() == -1)) { //there is no consensus in execution
@@ -495,7 +494,9 @@ public final class TOMLayer extends Thread implements RequestReceiver {
 
                 }
                 logger.debug("I am the leader and start consensus");
-                execManager.getProposer().startConsensus(execId, createPropose(dec));
+                int prid = this.controller.getStaticConf().getProcessId();
+                if(prid!=2 && prid!=4)
+                    execManager.getProposer().startConsensus(execId, createPropose(dec));
             }
         }
         logger.info("TOMLayer stopped.");

@@ -63,6 +63,8 @@ public class MonitoringDataSynchronizer {
                         continue;
                     if(!ep.shouldVerifyLatency())
                         continue;
+                    if(!cons.isDecided())
+                        continue;
 
                     Monitor oldMonitor = Monitor.getInstance(ep.getController());
 
@@ -122,17 +124,17 @@ public class MonitoringDataSynchronizer {
                 }
                 //BYZANTINE nodes:
                 Long lat = (long) 23;
-                if(my_index == 3 ){
+                if(my_index == 2 ){
                     //Arrays.fill(writeLatencies, (long)22);
                     //Arrays.fill(proposeLatencies, (long)22);
-                    writeLatencies[5] = lat;
-                    proposeLatencies[5] = lat;
+                    writeLatencies[4] = lat;
+                    proposeLatencies[4] = lat;
                 }
-                if(my_index == 5){
+                if(my_index == 4){
                     //Arrays.fill(writeLatencies, (long)22);
                     //Arrays.fill(proposeLatencies, (long)22);
-                    writeLatencies[3] = lat;
-                    proposeLatencies[3] = lat;
+                    writeLatencies[2] = lat;
+                    proposeLatencies[2] = lat;
                 }
                 //for(int i=0; i<viewN;i++){
                 //    System.out.println("Delayed by: " + NsToS(delays[i]) + " from: " + i);
