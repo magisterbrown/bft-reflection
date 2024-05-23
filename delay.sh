@@ -3,7 +3,7 @@ delays() {
     tc qdisc add dev veth$1b root netem delay $2ms
 
 }
-delays 1 75
+delays 1 200
 for ((i = 2; i <= 9; i++)); do
     delays $i 200
 done

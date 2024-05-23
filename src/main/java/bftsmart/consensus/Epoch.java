@@ -50,6 +50,7 @@ public class Epoch implements Serializable {
     private boolean writeSent;
     private boolean acceptSent;
     private boolean acceptCreated;
+    public long acceptTime;
 
     private boolean alreadyRemoved = false; // indicates if this epoch was removed from its consensus
 
@@ -420,6 +421,7 @@ public class Epoch implements Serializable {
      */
     public void acceptCreated() {
         acceptCreated = true;
+        acceptTime = System.nanoTime();
     }
 
     /**

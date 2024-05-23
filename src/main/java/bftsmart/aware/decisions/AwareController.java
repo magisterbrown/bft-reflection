@@ -251,7 +251,7 @@ public class AwareController {
                         " current weight config is the best weight config");
             }
 
-            if (false && svc.getStaticConf().isUseLeaderSelection()
+            if (svc.getStaticConf().isUseLeaderSelection()
                     && executionManager.getCurrentLeader() != best.getLeader()
                     && current.getPredictedLatency() > best.getPredictedLatency() * svc.getStaticConf().getOptimizationGoal()) {
 

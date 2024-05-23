@@ -73,11 +73,16 @@ public class MonitoringDataSynchronizer {
 
                     int leader_index = cons.getDecision().getLeader();
                     //leader_index = 0;
-                    if(leader_index < 0 || leader_index >= propose.length || leader_index==3 || leader_index == 5)
+                    if(leader_index < 0 || leader_index >= propose.length )
                         continue;
-
+                    if(cons.getDecision().firstMessageProposed == null)
+                        continue;
                     long proposeTime = cons.getDecision().firstMessageProposed.proposeReceivedTime;
+                    if(proposeTime==0)
+                        continue;
                     long acceptTime = cons.getDecision().firstMessageProposed.acceptSentTime;
+                    //System.out.println("Accept diff " + (acceptTime - ep.acceptTime));
+                    //System.out.println("Accept diff " + NsToS(acceptTime - ep.acceptTime));
                     for (int i = 0; i < ep.getWriteTimes().length; i++) {
                         if(i==my_index || propose[leader_index][my_index] == Monitor.MISSING_VALUE)
                             continue;
@@ -91,16 +96,16 @@ public class MonitoringDataSynchronizer {
                             ms = "Delayed by ";  
                         }
                         else{
-                            //if(acceptTime>0)
-                            //    real = acceptTime;
-                            //else
-                            //    real = Monitor.MISSING_VALUE;
-                            delay = Monitor.MISSING_VALUE;
+                            if(acceptTime>0)
+                                delay = acceptTime - est;
+                            else
+                                delay = Monitor.MISSING_VALUE;
                             ms = "Did not arrive: ";
                         }
                         if(delay>writeLatencies[i]){
+                                System.out.println("I am: " + my_index);
                                 System.out.println("Leader: "+leader_index);
-                                System.out.println(ms + delay + " from: " + i);
+                                System.out.println(ms + delay + " from: " + i + " "+ NsToS(delay));
                                 System.out.println("Propose: "+ proposeTime);
                                 System.out.println("Est Propose: "+ estPropSent);
                                 System.out.println("Expected: "+ NsToS(est-estPropSent));
