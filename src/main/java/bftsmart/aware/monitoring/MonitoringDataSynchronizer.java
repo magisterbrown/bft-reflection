@@ -46,8 +46,16 @@ public class MonitoringDataSynchronizer {
             @Override
             public void run() {
                 //TODO: manage changing viewN
-                Long[] writeLatencies = Monitor.getInstance(svc).getFreshestWriteLatencies();
-                Long[] proposeLatencies = Monitor.getInstance(svc).getFreshestProposeLatencies();
+                Monitor latest = Monitor.getInstance(svc);
+                Long[] writeLatencies = latest.getFreshestWriteLatencies();
+                Long[] proposeLatencies = latest.getFreshestProposeLatencies();
+
+                Long[][] latestPropose = latest.sanitize(latest.getM_propose());
+                Long[][] latestWrite = latest.sanitize(latest.getM_write());
+                if (!svc.getStaticConf().isUseDummyPropose())
+                    latestPropose = latestWrite;
+
+
 
                 int viewN = svc.getCurrentViewN();
                 int my_index = svc.getStaticConf().getProcessId();
@@ -91,20 +99,22 @@ public class MonitoringDataSynchronizer {
                         long delay = 0;
                         long estPropSent = proposeTime - propose[leader_index][my_index];
                         long est =  estPropSent + (propose[leader_index][i] + write[i][my_index]);
-                        long real = ep.getWriteTimes()[i];
+                        long real;
                         String ms;
                         if(ep.getWriteSetted()[i]){
-                            delay = real - est;
+                            //delay = real - est;
+                            real = ep.getWriteTimes()[i];
                             ms = "Delayed by ";  
                         }
                         else{
                             if(acceptTime>0)
-                                delay = acceptTime - est;
+                                real = acceptTime;
                             else
-                                delay = Monitor.MISSING_VALUE;
+                                real = Monitor.MISSING_VALUE;
                             ms = "Did not arrive: ";
                         }
-                        if(delay>writeLatencies[i]){
+                        delay = real - est;
+                        if(delay>0.5*(latestPropose[leader_index][i] + writeLatencies[i])){
                                 System.out.println("I am: " + my_index);
                                 System.out.println("Leader: "+leader_index);
                                 System.out.println(ms + delay + " from: " + i + " "+ NsToS(delay));
@@ -113,13 +123,13 @@ public class MonitoringDataSynchronizer {
                                 System.out.println("Expected: "+ NsToS(est-estPropSent));
                                 System.out.println("Actual: "+ NsToS(real-estPropSent));
                                 System.out.println("\n");
+                                if(latestPropose[leader_index][i] + writeLatencies[i] < real-estPropSent){
+                                    writeLatencies[i]+=(real-estPropSent)-(writeLatencies[i]+latestPropose[leader_index][i]);
+                                    System.out.println("Latency increased: " + NsToS(writeLatencies[i]) + " to: " + i);
+                                }
                         }
                         //if(delays[i]<delay)
                         //    delays[i] = delay;
-                        //if(delay>writeLatencies[i] && proposeLatencies[i] + writeLatencies[i] < real-estPropSent){
-                        //    writeLatencies[i]+=(real-estPropSent)-(writeLatencies[i]+proposeLatencies[i]);
-                        //    System.out.println("Latency increased: " + NsToS(writeLatencies[i]) + " to: " + i);
-                        //}
                     }
                 }
                 //BYZANTINE nodes:
