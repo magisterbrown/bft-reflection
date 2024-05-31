@@ -13,6 +13,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.List;
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * This class disseminates this replicas measurements with total order
@@ -43,6 +45,7 @@ public class MonitoringDataSynchronizer {
         // Create a time to periodically broadcast this replica's measurements to all replicas
         Timer timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
+            Set<Integer> analyzed = new HashSet<Integer>();
             @Override
             public void run() {
                 //TODO: manage changing viewN
@@ -61,10 +64,11 @@ public class MonitoringDataSynchronizer {
                 int my_index = svc.getStaticConf().getProcessId();
                 long[] delays = new long[viewN];
                 Arrays.fill(delays, 0);
+                System.out.println("Under review");
+                System.out.println(Arrays.toString(execManager.getConsensuses().toArray()));
                 for(Integer cid: List.copyOf(execManager.getConsensuses())){
                     if(cid == -1)
                         continue;
-
                     Consensus cons = execManager.getConsensus(cid);
                     Epoch ep = cons.getDecisionEpoch();
                     if(ep == null)
@@ -93,40 +97,49 @@ public class MonitoringDataSynchronizer {
                     long acceptTime = cons.getDecision().firstMessageProposed.acceptSentTime;
                     //System.out.println("Accept diff " + (acceptTime - ep.acceptTime));
                     //System.out.println("Accept diff " + NsToS(acceptTime - ep.acceptTime));
+                    boolean printer = !analyzed.contains(cid);
+                    analyzed.add(cid);
+                    //printer=true;
+                    if(printer)
+                        System.out.println("Consensus: "+cid);
                     for (int i = 0; i < ep.getWriteTimes().length; i++) {
                         if(i==my_index || propose[leader_index][my_index] == Monitor.MISSING_VALUE)
                             continue;
                         long delay = 0;
                         long estPropSent = proposeTime - propose[leader_index][my_index];
-                        long est =  estPropSent + (propose[leader_index][i] + write[i][my_index]);
+                        long West =  estPropSent + (propose[leader_index][i] + write[i][my_index]);
                         long real;
                         String ms;
                         if(ep.getWriteSetted()[i]){
-                            //delay = real - est;
                             real = ep.getWriteTimes()[i];
                             ms = "Delayed by ";  
                         }
                         else{
-                            if(acceptTime>0)
-                                real = acceptTime;
-                            else
-                                real = Monitor.MISSING_VALUE;
                             ms = "Did not arrive: ";
+                            real = Monitor.MISSING_VALUE;
+                            writeLatencies[i] = Monitor.MISSING_VALUE;
+                            continue;
                         }
-                        delay = real - est;
-                        if(delay>0.5*(latestPropose[leader_index][i] + writeLatencies[i])){
-                                System.out.println("I am: " + my_index);
-                                System.out.println("Leader: "+leader_index);
-                                System.out.println(ms + delay + " from: " + i + " "+ NsToS(delay));
-                                System.out.println("Propose: "+ proposeTime);
-                                System.out.println("Est Propose: "+ estPropSent);
-                                System.out.println("Expected: "+ NsToS(est-estPropSent));
-                                System.out.println("Actual: "+ NsToS(real-estPropSent));
-                                System.out.println("\n");
-                                if(latestPropose[leader_index][i] + writeLatencies[i] < real-estPropSent){
-                                    writeLatencies[i]+=(real-estPropSent)-(writeLatencies[i]+latestPropose[leader_index][i]);
-                                    System.out.println("Latency increased: " + NsToS(writeLatencies[i]) + " to: " + i);
+                        delay = real - West;
+                        if(delay>0.00){
+                                if(printer){
+                                    System.out.println("I am: " + my_index);
+                                    System.out.println("Leader: "+leader_index);
+                                    System.out.println(ms + delay + " from: " + i + " "+ NsToS(delay));
+                                    System.out.println("Propose: "+ proposeTime);
+                                    System.out.println("Est Propose: "+ estPropSent);
+                                    System.out.println("Expected: "+ NsToS(West-estPropSent));
+                                    System.out.println("Actual: "+ NsToS(real-estPropSent));
+                                    System.out.println("\n");
                                 }
+                                long should = real - (proposeTime - latestPropose[leader_index][my_index] + latestPropose[leader_index][i]);
+                                writeLatencies[i]=Math.max(writeLatencies[i], should);
+
+                                //if(latestPropose[leader_index][i] + writeLatencies[i] < real-estPropSent){
+                                //    writeLatencies[i]+=(real-estPropSent)-(writeLatencies[i]+latestPropose[leader_index][i]);
+                                //    if(printer)
+                                //        System.out.println("Latency increased: " + NsToS(writeLatencies[i]) + " to: " + i);
+                                //}
                         }
                         //if(delays[i]<delay)
                         //    delays[i] = delay;

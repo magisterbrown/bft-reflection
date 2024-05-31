@@ -336,7 +336,7 @@ public final class DeliveryThread extends Thread {
 					// inside setLastExec
 					int cid = lastDecision.getConsensusId();
                     int storecons = 3;
-                    storecons = 400;
+                    storecons = 35;
 					if (cid > (storecons-1)) {
 						int stableConsensus = cid - storecons;
 
