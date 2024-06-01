@@ -161,19 +161,19 @@ public class MonitoringDataSynchronizer {
                 System.out.println("");
                 System.out.println("Curr leader: "+ currLeader + ": " + susLeaders.get(currLeader).size());
                 //BYZANTINE nodes:
-                Long lat = (long) 23;
-                if(my_index == 2 ){
-                    //Arrays.fill(writeLatencies, (long)22);
-                    //Arrays.fill(proposeLatencies, (long)22);
-                    writeLatencies[4] = lat;
-                    proposeLatencies[4] = lat;
-                }
-                if(my_index == 4){
-                    //Arrays.fill(writeLatencies, (long)22);
-                    //Arrays.fill(proposeLatencies, (long)22);
-                    writeLatencies[2] = lat;
-                    proposeLatencies[2] = lat;
-                }
+                //Long lat = (long) 23;
+                //if(my_index == 2 ){
+                //    //Arrays.fill(writeLatencies, (long)22);
+                //    //Arrays.fill(proposeLatencies, (long)22);
+                //    writeLatencies[4] = lat;
+                //    proposeLatencies[4] = lat;
+                //}
+                //if(my_index == 4){
+                //    //Arrays.fill(writeLatencies, (long)22);
+                //    //Arrays.fill(proposeLatencies, (long)22);
+                //    writeLatencies[2] = lat;
+                //    proposeLatencies[2] = lat;
+                //}
                 //for(int i=0; i<viewN;i++){
                 //    System.out.println("Delayed by: " + NsToS(delays[i]) + " from: " + i);
                 //}
