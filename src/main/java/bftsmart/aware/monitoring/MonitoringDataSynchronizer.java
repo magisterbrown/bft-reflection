@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.HashMap;
 
 /**
  * This class disseminates this replicas measurements with total order
@@ -45,9 +46,15 @@ public class MonitoringDataSynchronizer {
         // Create a time to periodically broadcast this replica's measurements to all replicas
         Timer timer = new Timer();
         timer.scheduleAtFixedRate(new TimerTask() {
+
             Set<Integer> analyzed = new HashSet<Integer>();
+            HashMap<Integer, Set<Integer>> susLeaders;
+
             @Override
             public void run() {
+                susLeaders = new HashMap<>();
+                int currLeader = execManager.getCurrentLeader();
+                susLeaders.put(currLeader, new HashSet<>());
                 //TODO: manage changing viewN
                 Monitor latest = Monitor.getInstance(svc);
                 Long[] writeLatencies = latest.getFreshestWriteLatencies();
@@ -122,6 +129,9 @@ public class MonitoringDataSynchronizer {
                         }
                         delay = real - West;
                         if(delay>0.00){
+                                if(!susLeaders.containsKey(leader_index))
+                                    susLeaders.put(leader_index, new HashSet<>());
+                                susLeaders.get(leader_index).add(i);
                                 if(printer){
                                     System.out.println("I am: " + my_index);
                                     System.out.println("Leader: "+leader_index);
@@ -145,6 +155,11 @@ public class MonitoringDataSynchronizer {
                         //    delays[i] = delay;
                     }
                 }
+                System.out.println("Sus leaders:");
+                for (int key : susLeaders.keySet())
+                    System.out.print(", "+ key + ": " + susLeaders.get(key).size());
+                System.out.println("");
+                System.out.println("Curr leader: "+ currLeader + ": " + susLeaders.get(currLeader).size());
                 //BYZANTINE nodes:
                 Long lat = (long) 23;
                 if(my_index == 2 ){
