@@ -48,11 +48,13 @@ public class MonitoringDataSynchronizer {
         timer.scheduleAtFixedRate(new TimerTask() {
 
             Set<Integer> analyzed = new HashSet<Integer>();
+            Set<Integer> leadDelayed;
             HashMap<Integer, Set<Integer>> susLeaders;
 
             @Override
             public void run() {
                 susLeaders = new HashMap<>();
+                leadDelayed = new HashSet<>();
                 int currLeader = execManager.getCurrentLeader();
                 susLeaders.put(currLeader, new HashSet<>());
                 //TODO: manage changing viewN
@@ -107,7 +109,7 @@ public class MonitoringDataSynchronizer {
                     boolean printer = !analyzed.contains(cid);
                     analyzed.add(cid);
                     //printer=true;
-                    if(printer)
+                    if(false)
                         System.out.println("Consensus: "+cid);
                     for (int i = 0; i < ep.getWriteTimes().length; i++) {
                         if(i==my_index || propose[leader_index][my_index] == Monitor.MISSING_VALUE)
@@ -123,16 +125,24 @@ public class MonitoringDataSynchronizer {
                         }
                         else{
                             ms = "Did not arrive: ";
-                            real = Monitor.MISSING_VALUE;
-                            writeLatencies[i] = Monitor.MISSING_VALUE;
-                            continue;
-                        }
-                        delay = real - West;
-                        if(delay>0.00){
+                            if(West<acceptTime) {
+                                writeLatencies[i] = Monitor.MISSING_VALUE;
                                 if(!susLeaders.containsKey(leader_index))
                                     susLeaders.put(leader_index, new HashSet<>());
                                 susLeaders.get(leader_index).add(i);
-                                if(printer){
+                            }
+                            continue;
+                        }
+                        delay = real - West;
+                        double ratio = (double) delay/(propose[leader_index][i] + write[i][my_index]);
+                        if(ratio>0.1){
+                                System.out.println("Ration: "+ratio);
+                                if(!susLeaders.containsKey(leader_index))
+                                    susLeaders.put(leader_index, new HashSet<>());
+                                susLeaders.get(leader_index).add(i);
+                                if(leader_index == currLeader)
+                                    leadDelayed.add(i);
+                                if(false){
                                     System.out.println("I am: " + my_index);
                                     System.out.println("Leader: "+leader_index);
                                     System.out.println(ms + delay + " from: " + i + " "+ NsToS(delay));
@@ -155,11 +165,15 @@ public class MonitoringDataSynchronizer {
                         //    delays[i] = delay;
                     }
                 }
+                System.out.println("Monitorere: " + this.hashCode());
                 System.out.println("Sus leaders:");
                 for (int key : susLeaders.keySet())
                     System.out.print(", "+ key + ": " + susLeaders.get(key).size());
                 System.out.println("");
                 System.out.println("Curr leader: "+ currLeader + ": " + susLeaders.get(currLeader).size());
+                System.out.println("Curr leader: "+ currLeader + ": " + leadDelayed.size());
+                if(leadDelayed.size() > svc.getStaticConf().getF())
+                    System.out.println("Leader CHAAAANGE");
                 //BYZANTINE nodes:
                 //Long lat = (long) 23;
                 //if(my_index == 2 ){
