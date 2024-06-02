@@ -109,10 +109,8 @@ public class MonitoringDataSynchronizer {
                     boolean printer = !analyzed.contains(cid);
                     analyzed.add(cid);
                     //printer=true;
-                    if(false)
-                        System.out.println("Consensus: "+cid);
                     for (int i = 0; i < ep.getWriteTimes().length; i++) {
-                        if(i==my_index || propose[leader_index][my_index] == Monitor.MISSING_VALUE)
+                        if(i==my_index)
                             continue;
                         long delay = 0;
                         long estPropSent = proposeTime - propose[leader_index][my_index];
@@ -142,27 +140,16 @@ public class MonitoringDataSynchronizer {
                                 susLeaders.get(leader_index).add(i);
                                 if(leader_index == currLeader)
                                     leadDelayed.add(i);
-                                if(false){
-                                    System.out.println("I am: " + my_index);
-                                    System.out.println("Leader: "+leader_index);
-                                    System.out.println(ms + delay + " from: " + i + " "+ NsToS(delay));
-                                    System.out.println("Propose: "+ proposeTime);
-                                    System.out.println("Est Propose: "+ estPropSent);
-                                    System.out.println("Expected: "+ NsToS(West-estPropSent));
-                                    System.out.println("Actual: "+ NsToS(real-estPropSent));
-                                    System.out.println("\n");
-                                }
+                                
                                 long should = real - (proposeTime - latestPropose[leader_index][my_index] + latestPropose[leader_index][i]);
                                 writeLatencies[i]=Math.max(writeLatencies[i], should);
 
-                                //if(latestPropose[leader_index][i] + writeLatencies[i] < real-estPropSent){
-                                //    writeLatencies[i]+=(real-estPropSent)-(writeLatencies[i]+latestPropose[leader_index][i]);
-                                //    if(printer)
-                                //        System.out.println("Latency increased: " + NsToS(writeLatencies[i]) + " to: " + i);
-                                //}
                         }
-                        //if(delays[i]<delay)
-                        //    delays[i] = delay;
+                    }
+                    for (int i = 0; i < ep.getAcceptTimes().length; i++) {
+                        if(i==my_index)
+                            continue;
+
                     }
                 }
                 System.out.println("Monitorere: " + this.hashCode());
