@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.PriorityQueue;
 import java.util.List;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -74,7 +75,7 @@ public class MonitoringDataSynchronizer {
                 long[] delays = new long[viewN];
                 Arrays.fill(delays, 0);
                 System.out.println("Under review");
-                System.out.println(Arrays.toString(execManager.getConsensuses().toArray()));
+                //System.out.println(Arrays.toString(execManager.getConsensuses().toArray()));
                 for(Integer cid: List.copyOf(execManager.getConsensuses())){
                     if(cid == -1)
                         continue;
@@ -134,7 +135,7 @@ public class MonitoringDataSynchronizer {
                         delay = real - West;
                         double ratio = (double) delay/(propose[leader_index][i] + write[i][my_index]);
                         if(ratio>0.1){
-                                System.out.println("Ration: "+ratio);
+                                //System.out.println("Ration: "+ratio);
                                 if(!susLeaders.containsKey(leader_index))
                                     susLeaders.put(leader_index, new HashSet<>());
                                 susLeaders.get(leader_index).add(i);
@@ -149,18 +150,60 @@ public class MonitoringDataSynchronizer {
                     for (int i = 0; i < ep.getAcceptTimes().length; i++) {
                         if(i==my_index)
                             continue;
-
+                        int earIdx = 0;
+                        long earliest = 0;
+                        //Set<Integer> addedWrites = new HashSet<>();
+                        int counter = 0;
+                        ep.getWriteTimes();
+                        long[] estWriteArrival = new long[ep.getWriteTimes().length];
+                        PriorityQueue<Integer> pq = new PriorityQueue<>((a, b) -> Long.compare(estWriteArrival[a], estWriteArrival[b]));
+                        for(int j=0;j<ep.getWriteTimes().length; j++){
+                            if(!ep.getWriteSetted()[j])
+                                continue;
+                            estWriteArrival[j] = ep.getWriteTimes()[j] - write[j][my_index] + write[j][i];
+                            pq.add(j);
+                        }
+                        //System.out.println("Sorted: ");
+                        float collectedWeight = 0;
+                        int idx = -1;
+                        while(collectedWeight < (double) svc.getOverlayQuorum()){
+                            if(pq.isEmpty())
+                                System.out.println("ERRor out BRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRr");
+                            idx = pq.poll();
+                            collectedWeight += ep.getSumWeightsWrite()[idx];
+                            //System.out.println("Idx: "+idx+ " "+estWriteArrival[idx] +" "+ep.getSumWeightsWrite()[idx] );
+                        }
+                        //while(collectedWeight < (double) svc.getOverlayQuorum()){
+                        //    earliest = Long.MAX_VALUE;
+                        //    for(int j=0;j<ep.getWriteTimes().length; j++){
+                        //        long estArrival = ep.getWriteTimes()[j] - write[j][my_index]+write[j][i];
+                        //        if(estArrival<earliest && !addedWrites.contains(j)){
+                        //            earliest = estArrival;
+                        //            earIdx = j;
+                        //        }
+                        //    }
+                        //    counter++;
+                        //    System.out.println("Looks: "+counter);
+                        //    addedWrites.add(earIdx);
+                        //    collectedWeight+=ep.getSumWeightsWrite()[earIdx];
+                        //}
+                    //    System.out.println("Collected"+collectedWeight);
+                        long delay = ep.getAcceptTimes()[i] - (estWriteArrival[idx] + write[idx][my_index]);
+                        if(ep.getAcceptSetted()[i] && delay>0){
+                            System.out.println("ACCEPT delay: "+delay);
+                        }
                     }
-                }
-                System.out.println("Monitorere: " + this.hashCode());
-                System.out.println("Sus leaders:");
-                for (int key : susLeaders.keySet())
-                    System.out.print(", "+ key + ": " + susLeaders.get(key).size());
-                System.out.println("");
-                System.out.println("Curr leader: "+ currLeader + ": " + susLeaders.get(currLeader).size());
-                System.out.println("Curr leader: "+ currLeader + ": " + leadDelayed.size());
-                if(leadDelayed.size() > svc.getStaticConf().getF())
+                } 
+                //System.out.println("Monitorere: " + this.hashCode());
+                //System.out.println("Sus leaders:");
+                //for (int key : susLeaders.keySet())
+                //    System.out.print(", "+ key + ": " + susLeaders.get(key).size());
+                //System.out.println("");
+                //System.out.println("Curr leader: "+ currLeader + ": " + susLeaders.get(currLeader).size());
+                if(leadDelayed.size() > svc.getStaticConf().getF()){
+                    System.out.println("Curr leader: "+ currLeader + ": " + leadDelayed.size());
                     System.out.println("Leader CHAAAANGE");
+                }
                 //BYZANTINE nodes:
                 //Long lat = (long) 23;
                 //if(my_index == 2 ){

@@ -452,6 +452,10 @@ public class Epoch implements Serializable {
         return writeSetted;
     }
 
+    public boolean[] getAcceptSetted() {
+        return acceptSetted;
+    }
+
     /**
      * Set the speculative ACCEPT message
      * @param acceptMsg The speculative ACCEPT message
