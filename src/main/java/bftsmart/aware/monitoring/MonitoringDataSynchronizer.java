@@ -123,6 +123,7 @@ public class MonitoringDataSynchronizer {
                         }
                         else{
                             ms = "Did not arrive: ";
+                            //TODO: base arrive check on a new estimate
                             if(West<acceptTime) {
                                 writeLatencies[i] = Monitor.MISSING_VALUE;
                                 if(!susLeaders.containsKey(leader_index))
@@ -132,8 +133,8 @@ public class MonitoringDataSynchronizer {
                             continue;
                         }
                         delay = real - West;
-                        if(delay>0)
-                            System.out.println("WRITE delay: "+NsToS(delay));
+                        //if(delay>0)
+                        //    System.out.println("WRITE delay: "+NsToS(delay));
                         double ratio = (double) delay/(propose[leader_index][i] + write[i][my_index]);
                         if(ratio>0.1){
                                 //System.out.println("Ration: "+ratio);
@@ -175,26 +176,38 @@ public class MonitoringDataSynchronizer {
                                 continue acceptLoop;
                             idx = pq.poll();
                             collectedWeight += ep.getSumWeightsWrite()[idx];
-                            //System.out.println("Idx: "+idx+ " "+estWriteArrival[idx] +" "+ep.getSumWeightsWrite()[idx] );
                         }
-                        //while(collectedWeight < (double) svc.getOverlayQuorum()){
-                        //    earliest = Long.MAX_VALUE;
-                        //    for(int j=0;j<ep.getWriteTimes().length; j++){
-                        //        long estArrival = ep.getWriteTimes()[j] - write[j][my_index]+write[j][i];
-                        //        if(estArrival<earliest && !addedWrites.contains(j)){
-                        //            earliest = estArrival;
-                        //            earIdx = j;
-                        //        }
-                        //    }
-                        //    counter++;
-                        //    System.out.println("Looks: "+counter);
-                        //    addedWrites.add(earIdx);
-                        //    collectedWeight+=ep.getSumWeightsWrite()[earIdx];
-                        //}
-                    //    System.out.println("Collected"+collectedWeight);
                         long delay = ep.getAcceptTimes()[i] - (estWriteArrival[idx] + write[i][my_index]);
-                        if(ep.getAcceptSetted()[i] && delay>0){
-                            System.out.println("ACCEPT delay: "+NsToS(delay)+" from idx: "+i);
+                        double ratio = (double) delay/(write[idx][i] + write[i][my_index]);
+                        if(!ep.getAcceptSetted()[i] || ratio>0.1){
+                            pq.clear();
+                            for(int j=0;j<ep.getWriteTimes().length; j++){
+                                if(!ep.getWriteSetted()[j] || latestWrite[j][my_index] == Monitor.MISSING_VALUE)
+                                    continue;
+                                estWriteArrival[j] = ep.getWriteTimes()[j] - latestWrite[j][my_index] + latestWrite[j][i];
+                                pq.add(j);
+                            }
+                            collectedWeight = 0;
+                            while(collectedWeight - ((double) svc.getOverlayQuorum()) <= THRESHOLD){
+                                if(pq.isEmpty())
+                                    continue acceptLoop;
+                                idx = pq.poll();
+                                collectedWeight += ep.getSumWeightsWrite()[idx];
+                            }
+                            if(ep.getAcceptSetted()[i]){
+                                long should = ep.getAcceptTimes()[i] - estWriteArrival[idx];
+                                if(should>writeLatencies[i])
+                                    System.out.println("ACCEPT delay: "+NsToS(delay)+" from idx: "+i+" increase by: "+NsToS(should-writeLatencies[i]));
+                            }
+                            else{
+                                //TODO: add a lil of margin
+                                if(estWriteArrival[idx]+latestWrite[i][my_index]<cons.getDecision().firstMessageProposed.decisionTime){
+                                    long tm1 = estWriteArrival[idx]+latestWrite[i][my_index];
+                                    long tm2 = cons.getDecision().firstMessageProposed.decisionTime;
+                                    System.out.println("ACCEPT increated to inf : from idx: "+i+" because: "+tm1+"<"+tm2);
+                                }
+                            }
+                            //writeLatencies[i]=Math.max(writeLatencies[i], should);
                         }
                     }
                 } 
