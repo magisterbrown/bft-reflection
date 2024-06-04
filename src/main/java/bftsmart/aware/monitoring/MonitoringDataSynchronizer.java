@@ -74,7 +74,6 @@ public class MonitoringDataSynchronizer {
                 int my_index = svc.getStaticConf().getProcessId();
                 long[] delays = new long[viewN];
                 Arrays.fill(delays, 0);
-                System.out.println("Under review");
                 //System.out.println(Arrays.toString(execManager.getConsensuses().toArray()));
                 for(Integer cid: List.copyOf(execManager.getConsensuses())){
                     if(cid == -1)
@@ -111,7 +110,7 @@ public class MonitoringDataSynchronizer {
                     analyzed.add(cid);
                     //printer=true;
                     for (int i = 0; i < ep.getWriteTimes().length; i++) {
-                        if(i==my_index)
+                        if(i==my_index || propose[leader_index][my_index] == Monitor.MISSING_VALUE)
                             continue;
                         long delay = 0;
                         long estPropSent = proposeTime - propose[leader_index][my_index];
@@ -133,6 +132,8 @@ public class MonitoringDataSynchronizer {
                             continue;
                         }
                         delay = real - West;
+                        if(delay>0)
+                            System.out.println("WRITE delay: "+NsToS(delay));
                         double ratio = (double) delay/(propose[leader_index][i] + write[i][my_index]);
                         if(ratio>0.1){
                                 //System.out.println("Ration: "+ratio);
@@ -147,6 +148,7 @@ public class MonitoringDataSynchronizer {
 
                         }
                     }
+                    acceptLoop:
                     for (int i = 0; i < ep.getAcceptTimes().length; i++) {
                         if(i==my_index)
                             continue;
@@ -158,7 +160,7 @@ public class MonitoringDataSynchronizer {
                         long[] estWriteArrival = new long[ep.getWriteTimes().length];
                         PriorityQueue<Integer> pq = new PriorityQueue<>((a, b) -> Long.compare(estWriteArrival[a], estWriteArrival[b]));
                         for(int j=0;j<ep.getWriteTimes().length; j++){
-                            if(!ep.getWriteSetted()[j])
+                            if(!ep.getWriteSetted()[j] || write[j][my_index] == Monitor.MISSING_VALUE)
                                 continue;
                             estWriteArrival[j] = ep.getWriteTimes()[j] - write[j][my_index] + write[j][i];
                             pq.add(j);
@@ -166,9 +168,11 @@ public class MonitoringDataSynchronizer {
                         //System.out.println("Sorted: ");
                         float collectedWeight = 0;
                         int idx = -1;
-                        while(collectedWeight < (double) svc.getOverlayQuorum()){
+                        double THRESHOLD = -0.0000000001;
+
+                        while(collectedWeight - ((double) svc.getOverlayQuorum()) <= THRESHOLD){
                             if(pq.isEmpty())
-                                System.out.println("ERRor out BRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRr");
+                                continue acceptLoop;
                             idx = pq.poll();
                             collectedWeight += ep.getSumWeightsWrite()[idx];
                             //System.out.println("Idx: "+idx+ " "+estWriteArrival[idx] +" "+ep.getSumWeightsWrite()[idx] );
@@ -188,9 +192,9 @@ public class MonitoringDataSynchronizer {
                         //    collectedWeight+=ep.getSumWeightsWrite()[earIdx];
                         //}
                     //    System.out.println("Collected"+collectedWeight);
-                        long delay = ep.getAcceptTimes()[i] - (estWriteArrival[idx] + write[idx][my_index]);
+                        long delay = ep.getAcceptTimes()[i] - (estWriteArrival[idx] + write[i][my_index]);
                         if(ep.getAcceptSetted()[i] && delay>0){
-                            System.out.println("ACCEPT delay: "+delay);
+                            System.out.println("ACCEPT delay: "+NsToS(delay)+" from idx: "+i);
                         }
                     }
                 } 
