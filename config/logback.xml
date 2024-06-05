@@ -30,7 +30,7 @@
   </logger>
   
   
-  <logger name="bftsmart" level="INFO"> 
+  <logger name="bftsmart" level="OFF"> 
   	<appender-ref ref="MIN-STDOUT" />
   	<!-- <appender-ref ref="STDOUT" /> -->
   </logger> 
@@ -45,6 +45,6 @@
     	
    <logger name="bftsmart.reconfiguration.util.ECDSAKeyLoader" level="TRACE"></logger>
 	-->
-  <logger name="bftsmart.reconfiguration.util.RSAKeyLoader" level="TRACE"></logger>
+  <logger name="bftsmart.reconfiguration.util.RSAKeyLoader" level="OFF"></logger>
   
 </configuration>
