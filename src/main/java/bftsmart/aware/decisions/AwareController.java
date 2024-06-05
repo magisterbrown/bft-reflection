@@ -202,6 +202,7 @@ public class AwareController {
      */
     public void optimize(int cid) {
         // Re-calculate best weight distribution after every x consensus
+        System.out.println("Curr cid: "+ cid);
         if (svc.getStaticConf().isUseDynamicWeights() && cid % svc.getStaticConf().getCalculationInterval() == 0 & cid > 0) {
 
             AwareController awareController = AwareController.getInstance(svc, executionManager);
@@ -230,9 +231,12 @@ public class AwareController {
                 svc.reconfigureTo(newView);
                 AwareController.getInstance(svc, executionManager).setCurrent(bestWeights);
                 logger.info("|AWARE|-" + cid + "-[X] Optimization: Weight adjustment, now using " + bestWeights);
+                System.out.println("|AWARE|-" + cid + "-[X] Optimization: Weight adjustment, now using " + bestWeights);
             } else {
                 // Keep the current configuration
                 logger.info("|AWARE|-"+ cid + "-[ ] Optimization: Weight adjustment, no adjustment," +
+                        " current weight config is the best weight config");
+                System.out.println("|AWARE|-"+ cid + "-[ ] Optimization: Weight adjustment, no adjustment," +
                         " current weight config is the best weight config");
             }
 
@@ -265,8 +269,11 @@ public class AwareController {
                 }
 
                 logger.info("|AWARE|  [X] Optimization: leader selection, new leader is? " + best.getLeader());
+                System.out.println("|AWARE|  [X] Optimization: leader selection, new leader is? " + best.getLeader());
             } else { // Keep the current configuration
                 logger.info("|AWARE|  [ ] Optimization: leader selection: no leader change," +
+                        " current leader is the best leader");
+                System.out.println("|AWARE|  [ ] Optimization: leader selection: no leader change," +
                         " current leader is the best leader");
             }
             Monitor.getInstance(viewControl).init(svc.getCurrentViewN());
