@@ -10,3 +10,5 @@ test
 
 # Ignore Gradle build output directory
 build
+
+tags
