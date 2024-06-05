@@ -104,53 +104,41 @@ public class MonitoringDataSynchronizer {
                     if(proposeTime==0)
                         continue;
                     long acceptTime = cons.getDecision().firstMessageProposed.acceptSentTime;
-                    //System.out.println("Accept diff " + (acceptTime - ep.acceptTime));
-                    //System.out.println("Accept diff " + NsToS(acceptTime - ep.acceptTime));
                     boolean printer = !analyzed.contains(cid);
                     analyzed.add(cid);
-                    //printer=true;
+                    double coeff = 1.0;
                     for (int i = 0; i < ep.getWriteTimes().length; i++) {
-                        if(i==my_index || propose[leader_index][my_index] == Monitor.MISSING_VALUE)
+                        if(i==my_index || propose[leader_index][my_index] == Monitor.MISSING_VALUE || latestPropose[leader_index][my_index] == Monitor.MISSING_VALUE)
                             continue;
-                        long delay = 0;
-                        long estPropSent = proposeTime - propose[leader_index][my_index];
-                        long West =  estPropSent + (propose[leader_index][i] + write[i][my_index]);
-                        long real;
-                        String ms;
+
+                        long West =  proposeTime - propose[leader_index][my_index] + (propose[leader_index][i] + write[i][my_index]);
+                        long WestNew =  proposeTime - latestPropose[leader_index][my_index] + (latestPropose[leader_index][i] + latestWrite[i][my_index]);
+
                         if(ep.getWriteSetted()[i]){
-                            real = ep.getWriteTimes()[i];
-                            ms = "Delayed by ";  
-                        }
-                        else{
-                            ms = "Did not arrive: ";
-                            //TODO: base arrive check on a new estimate
-                            if(West<acceptTime) {
-                                writeLatencies[i] = Monitor.MISSING_VALUE;
-                                if(!susLeaders.containsKey(leader_index))
-                                    susLeaders.put(leader_index, new HashSet<>());
-                                susLeaders.get(leader_index).add(i);
-                            }
-                            continue;
-                        }
-                        delay = real - West;
-                        //if(delay>0)
-                        //    System.out.println("WRITE delay: "+NsToS(delay));
-                        double ratio = (double) delay/(propose[leader_index][i] + write[i][my_index]);
-                        if(ratio>0.1){
-                                //System.out.println("Ration: "+ratio);
-                                if(!susLeaders.containsKey(leader_index))
-                                    susLeaders.put(leader_index, new HashSet<>());
-                                susLeaders.get(leader_index).add(i);
+                            long delay = ep.getWriteTimes()[i] - West;
+                            double ratio = (double) delay/(propose[leader_index][i] + write[i][my_index]);
+                            if(ratio>coeff){
                                 if(leader_index == currLeader)
                                     leadDelayed.add(i);
-                                
-                                long should = real - (proposeTime - latestPropose[leader_index][my_index] + latestPropose[leader_index][i]);
-                                writeLatencies[i]=Math.max(writeLatencies[i], should);
-
+                                long tmp = writeLatencies[i];
+                                writeLatencies[i]=Math.max(writeLatencies[i], ep.getWriteTimes()[i]-WestNew);
+                                if(writeLatencies[i]>tmp)
+                                    System.out.println("Write to "+i+" increased by "+NsToS(writeLatencies[i]-tmp));
+                            }
+                        }
+                        else{
+                            if(WestNew+(latestPropose[leader_index][i]+latestWrite[i][my_index])*coeff<acceptTime) {
+                                writeLatencies[i] = Monitor.MISSING_VALUE;
+                                System.out.println("Write maxed to "+i);
+                                if(leader_index == currLeader)
+                                    leadDelayed.add(i);
+                            }
                         }
                     }
                     acceptLoop:
                     for (int i = 0; i < ep.getAcceptTimes().length; i++) {
+                        if(true)
+                            break;
                         if(i==my_index)
                             continue;
                         int earIdx = 0;
@@ -196,27 +184,21 @@ public class MonitoringDataSynchronizer {
                             }
                             if(ep.getAcceptSetted()[i]){
                                 long should = ep.getAcceptTimes()[i] - estWriteArrival[idx];
-                                if(should>writeLatencies[i])
-                                    System.out.println("ACCEPT delay: "+NsToS(delay)+" from idx: "+i+" increase by: "+NsToS(should-writeLatencies[i]));
+                                //if(should>writeLatencies[i])
+                                    //System.out.println("ACCEPT delay: "+NsToS(delay)+" from idx: "+i+" increase by: "+NsToS(should-writeLatencies[i]));
                             }
                             else{
                                 //TODO: add a lil of margin
                                 if(estWriteArrival[idx]+latestWrite[i][my_index]<cons.getDecision().firstMessageProposed.decisionTime){
                                     long tm1 = estWriteArrival[idx]+latestWrite[i][my_index];
                                     long tm2 = cons.getDecision().firstMessageProposed.decisionTime;
-                                    System.out.println("ACCEPT increated to inf : from idx: "+i+" because: "+tm1+"<"+tm2);
+                                    //System.out.println("ACCEPT increated to inf : from idx: "+i+" because: "+tm1+"<"+tm2);
                                 }
                             }
                             //writeLatencies[i]=Math.max(writeLatencies[i], should);
                         }
                     }
                 } 
-                //System.out.println("Monitorere: " + this.hashCode());
-                //System.out.println("Sus leaders:");
-                //for (int key : susLeaders.keySet())
-                //    System.out.print(", "+ key + ": " + susLeaders.get(key).size());
-                //System.out.println("");
-                //System.out.println("Curr leader: "+ currLeader + ": " + susLeaders.get(currLeader).size());
                 if(leadDelayed.size() > svc.getStaticConf().getF()){
                     System.out.println("Curr leader: "+ currLeader + ": " + leadDelayed.size());
                     System.out.println("Leader CHAAAANGE");
