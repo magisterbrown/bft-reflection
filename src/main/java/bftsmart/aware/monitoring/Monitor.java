@@ -4,7 +4,6 @@ import bftsmart.consensus.Decision;
 import bftsmart.consensus.Epoch;
 import bftsmart.reconfiguration.ServerViewController;
 import bftsmart.tom.core.messages.TOMMessage;
-import bftsmart.tom.core.ExecutionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -89,8 +88,8 @@ public class Monitor {
         return Monitor.instance;
     }
 
-    public void startSync(ExecutionManager execManager) {
-        this.monitoringDataSynchronizer = new MonitoringDataSynchronizer(this.svc, execManager);
+    public void startSync() {
+        this.monitoringDataSynchronizer = new MonitoringDataSynchronizer(this.svc);
     }
 
     public MessageLatencyMonitor getWriteLatencyMonitor() {
@@ -106,9 +105,9 @@ public class Monitor {
     }
 
     public Long[] getFreshestWriteLatencies() {
-        // TODO: verify latencies
         return writeLatencyMonitor.create_L("WRITE");
     }
+
 
     /**
      * Processes measurements decided in come consensus

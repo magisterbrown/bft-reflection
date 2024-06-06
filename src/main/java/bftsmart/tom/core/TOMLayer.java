@@ -404,8 +404,6 @@ public final class TOMLayer extends Thread implements RequestReceiver {
     public void run() {
         logger.debug("Running."); // TODO: can't this be outside of the loop?
         while (doWork) {
-            //if(prid == 3 || prid == 5)
-            //    continue;
 
             if (!this.controller.getStaticConf().isUseDummyPropose()) {
 
@@ -494,9 +492,7 @@ public final class TOMLayer extends Thread implements RequestReceiver {
 
                 }
                 logger.debug("I am the leader and start consensus");
-                int prid = this.controller.getStaticConf().getProcessId();
-                if(prid!=2 && prid!=4)
-                    execManager.getProposer().startConsensus(execId, createPropose(dec));
+                execManager.getProposer().startConsensus(execId, createPropose(dec));
             }
         }
         logger.info("TOMLayer stopped.");

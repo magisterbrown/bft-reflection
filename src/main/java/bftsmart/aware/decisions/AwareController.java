@@ -116,17 +116,6 @@ public class AwareController {
             propose = write;
         }
 
-        //Visualization
-        System.out.println("Write latencies");
-        for (int i = 0; i < write.length; i++) {
-
-            for (int j = 0; j < write[i].length; j++) {
-                //System.out.print(write[i][j] + " ");
-                System.out.print(String.format("%18d", write[i][j]));
-            }
-            System.out.println(); // Move to the next line after printing each row
-        }
-
         int cid = executionManager.getTOMLayer().getLastExec();
 
         currentDW = new AwareConfiguration(current, executionManager.getCurrentLeader());
@@ -178,19 +167,12 @@ public class AwareController {
         AwareConfiguration worst = awareConfigurations.get(awareConfigurations.size() - 1); // for evaluation
 
         // For testing, remove later, make it debug later
-        //logger.info("the best config is " + best);
-        //logger.info("the median config is " + median);
-        //logger.info("the worst config is " + worst);
-        //logger.info("");
-        //logger.info("current config is estimated to be " + estimate_current);
-        for(int ii=0;ii<15;ii++)
-            System.out.println(awareConfigurations.get(ii));
+        logger.info("the best config is " + best);
+        logger.info("the median config is " + median);
+        logger.info("the worst config is " + worst);
+        logger.info("");
+        logger.info("current config is estimated to be " + estimate_current);
 
-        //System.out.println("the best config is " + best);
-        //System.out.println("the median config is " + median);
-        //System.out.println("the worst config is " + worst);
-        //System.out.println("");
-        System.out.println("current config is estimated to be " + estimate_current);
         List<AwareConfiguration> bestConfigs = new ArrayList<>();
         for (AwareConfiguration dwc: awareConfigurations) {
             if (dwc.getPredictedLatency() == best.getPredictedLatency()) {
@@ -234,13 +216,6 @@ public class AwareController {
             logger.info("!!! Best: " + best);
             logger.info("");
 
-            System.out.println("");
-            System.out.println("!!! Best: " + best);
-            System.out.println("!!! BestN: " + best.getPredictedLatency());
-            System.out.println("!!! CurrN: " + current.getPredictedLatency());
-            System.out.println("");
-
-            
             if (svc.getStaticConf().isUseDynamicWeights()
                     && !currentWeights.equals(bestWeights)
                     && current.getPredictedLatency() > best.getPredictedLatency() * svc.getStaticConf().getOptimizationGoal()) {

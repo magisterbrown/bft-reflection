@@ -130,7 +130,6 @@ public class Simulator {
             PriorityQueue<Vote>[] acceptRcvd = new PriorityQueue[n];
 
 
-
             // Compute time proposed time for all replicas. the proposed time is the maximum out of two times:
             //  (1) replica i has received the PROPOSE and (2) replica 1 has finished its last consensus
             //                                                 (respected by offsets that express waiting time)
