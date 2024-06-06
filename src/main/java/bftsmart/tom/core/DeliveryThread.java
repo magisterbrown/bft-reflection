@@ -246,7 +246,7 @@ public final class DeliveryThread extends Thread {
                     init = false;
 					/** AWARE **/
 					if (controller.getStaticConf().isUseDynamicWeights())
-						Monitor.getInstance(controller).startSync();
+						Monitor.getInstance(controller).startSync(tomLayer.execManager);
 					/** End AWARE **/
                 }
             }
@@ -335,8 +335,10 @@ public final class DeliveryThread extends Thread {
 					// TODO: Is this part necessary? If it is, can we put it
 					// inside setLastExec
 					int cid = lastDecision.getConsensusId();
-					if (cid > 2) {
-						int stableConsensus = cid - 3;
+                    int storecons = 3;
+                    storecons = 35;
+					if (cid > (storecons-1)) {
+						int stableConsensus = cid - storecons;
 
 						tomLayer.execManager.removeConsensus(stableConsensus);
 					}
