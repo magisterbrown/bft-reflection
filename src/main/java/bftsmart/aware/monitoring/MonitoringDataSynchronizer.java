@@ -75,6 +75,7 @@ public class MonitoringDataSynchronizer {
                 long[] delays = new long[viewN];
                 Arrays.fill(delays, 0);
                 //System.out.println(Arrays.toString(execManager.getConsensuses().toArray()));
+                Long[] writeSaved = writeLatencies.clone();
                 for(Integer cid: List.copyOf(execManager.getConsensuses())){
                     if(cid == -1)
                         continue;
@@ -122,14 +123,14 @@ public class MonitoringDataSynchronizer {
                                     leadDelayed.add(i);
                                 long tmp = writeLatencies[i];
                                 writeLatencies[i]=Math.max(writeLatencies[i], ep.getWriteTimes()[i]-WestNew);
-                                if(writeLatencies[i]>tmp)
-                                    System.out.println("Write to "+i+" increased by "+NsToS(writeLatencies[i]-tmp));
+                                //if(writeLatencies[i]>tmp)
+                                    //System.out.println("Write to "+i+" increased by "+NsToS(writeLatencies[i]-tmp));
                             }
                         }
                         else{
                             if(WestNew+(latestPropose[leader_index][i]+latestWrite[i][my_index])*coeff<acceptTime) {
                                 writeLatencies[i] = Monitor.MISSING_VALUE;
-                                System.out.println("Write maxed to "+i);
+                                //System.out.println("Write maxed to "+i);
                                 if(leader_index == currLeader)
                                     leadDelayed.add(i);
                             }
@@ -199,9 +200,13 @@ public class MonitoringDataSynchronizer {
                         }
                     }
                 } 
+                for(int i=0;i<writeSaved.length;i++){
+                    if(writeLatencies[i]>writeSaved[i])
+                        System.out.println("Dealay to: "+i+" increased by: "+ NsToS(writeLatencies[i]-writeSaved[i]));
+                }
                 if(leadDelayed.size() > svc.getStaticConf().getF()){
-                    System.out.println("Curr leader: "+ currLeader + ": " + leadDelayed.size());
-                    System.out.println("Leader CHAAAANGE");
+                    //System.out.println("Curr leader: "+ currLeader + ": " + leadDelayed.size());
+                    //System.out.println("Leader CHAAAANGE");
                 }
                 //BYZANTINE nodes:
                 //Long lat = (long) 23;

@@ -3,15 +3,15 @@ delays() {
     tc qdisc add dev veth$1b root netem delay $2ms
 
 }
-delays 1 75
-delays 2 75
-delays 3 70 
-delays 4 75
-delays 5 70
-delays 6 75
-delays 7 75
-#for ((i = 2; i <= 7; i++)); do
-#    delays $i 75
+delays 1 45
+delays 2 45
+delays 3 40 
+delays 4 45
+delays 5 40
+delays 6 45
+delays 7 45
+#for ((i = 2; i <= 4; i++)); do
+#    delays $i 45
 #done
-delays 8 130 
+delays 8 150
 delays 9 10
