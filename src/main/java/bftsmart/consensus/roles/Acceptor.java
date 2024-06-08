@@ -158,7 +158,8 @@ public final class Acceptor {
 		}
 			break;
 		case MessageFactory.WRITE: {
-			writeReceived(epoch, msg.getSender(), msg.getValue());
+            if(me != 2 && me !=4)
+			  writeReceived(epoch, msg.getSender(), msg.getValue());
 		}
 			break;
 		case MessageFactory.ACCEPT: {
