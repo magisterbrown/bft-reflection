@@ -19,6 +19,8 @@ import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.List;
+import java.util.ArrayList;
 
 import org.apache.commons.codec.binary.Base64;
 
@@ -48,6 +50,7 @@ public class Epoch implements Serializable {
     private boolean writeSent;
     private boolean acceptSent;
     private boolean acceptCreated;
+    public long acceptTime;
 
     private boolean alreadyRemoved = false; // indicates if this epoch was removed from its consensus
 
@@ -68,6 +71,10 @@ public class Epoch implements Serializable {
     private double[] sumWeightsWrite;
     private double[] sumWeightsAccept;
 
+    //For reflection
+    private long[] writeTimes;
+    private long[] acceptTimes;
+    private boolean arraysUpdated;
 
     /**
      * Creates a new instance of Epoch for acceptors
@@ -80,6 +87,7 @@ public class Epoch implements Serializable {
         this.timestamp = timestamp;
         this.controller = controller;
         this.proof = new HashSet<>();
+        this.arraysUpdated = false;
         //ExecutionManager manager = consensus.getManager();
 
         this.lastView = controller.getCurrentView();
@@ -97,7 +105,9 @@ public class Epoch implements Serializable {
         writeSent = false;
         acceptSent = false;
         acceptCreated = false;
-
+    
+        writeTimes = new long[n];
+        acceptTimes = new long[n];
 
         if (timestamp == 0) {
 
@@ -125,8 +135,9 @@ public class Epoch implements Serializable {
     // If a view change takes place and concurrentely this consensus is still
     // receiving messages, the write and accept arrays must be updated
     private synchronized void updateArrays() {
-        
         if (lastView.getId() != controller.getCurrentViewId()) {
+            System.out.println("Updated arrays view: " + controller.getCurrentViewId());
+            this.arraysUpdated = true; 
             
             int n = controller.getCurrentViewN();
             
@@ -138,6 +149,8 @@ public class Epoch implements Serializable {
 
             Arrays.fill(writeSetted, false);
             Arrays.fill(acceptSetted, false);
+
+            // TODO: update time arrays
         
             for (int pid : lastView.getProcesses()) {
                 
@@ -165,12 +178,27 @@ public class Epoch implements Serializable {
             
         }
     }
+    public boolean shouldVerifyLatency() {
+        return !this.arraysUpdated; 
+    }
+    
+    public ServerViewController getController() {
+        return this.controller;
+    }
             
     /**
      * Set this epoch as removed from its consensus instance
      */
     public void setRemoved() {
         this.alreadyRemoved = true;
+    }
+
+    public long[] getWriteTimes() {
+        return this.writeTimes;
+    }
+
+    public long[] getAcceptTimes() {
+        return this.acceptTimes;
     }
 
     /**
@@ -300,6 +328,9 @@ public class Epoch implements Serializable {
         if (p >=0 /*&& !writeSetted[p] && !isFrozen() */) { //it can only be setted once
             write[p] = value;
             writeSetted[p] = true;
+            
+         
+            writeTimes[p] = System.nanoTime();
             if (sumWeightsWrite != null)
                  sumWeightsWrite[p]  = this.controller.getCurrentView().getWeight(acceptor);
         }
@@ -347,6 +378,7 @@ public class Epoch implements Serializable {
         if (p >= 0 /*&& !strongSetted[p] && !isFrozen()*/) { //it can only be setted once
             accept[p] = value;
             acceptSetted[p] = true;
+            acceptTimes[p] = System.nanoTime();
             sumWeightsAccept[p]  = this.controller.getCurrentView().getWeight(acceptor);
         }
         //******* EDUARDO END **************//
@@ -389,6 +421,7 @@ public class Epoch implements Serializable {
      */
     public void acceptCreated() {
         acceptCreated = true;
+        acceptTime = System.nanoTime();
     }
 
     /**
@@ -413,6 +446,14 @@ public class Epoch implements Serializable {
      */
     public boolean isAcceptCreated() {
         return acceptCreated;
+    }
+
+    public boolean[] getWriteSetted() {
+        return writeSetted;
+    }
+
+    public boolean[] getAcceptSetted() {
+        return acceptSetted;
     }
 
     /**
@@ -543,6 +584,9 @@ public class Epoch implements Serializable {
 
         Arrays.fill(writeSetted, false);
         Arrays.fill(acceptSetted, false);
+
+        Arrays.fill(writeTimes, 0);
+        Arrays.fill(acceptTimes, 0);
 
         this.write = new byte[n][];
         this.accept = new byte[n][];

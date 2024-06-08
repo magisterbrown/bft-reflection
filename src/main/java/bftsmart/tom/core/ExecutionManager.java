@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.TreeMap;
+import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
 
 import bftsmart.consensus.Decision;
@@ -398,6 +399,10 @@ public final class ExecutionManager {
         consensusesLock.unlock();
 
         return consensus;
+    }
+
+    public Set<Integer> getConsensuses(){
+        return consensuses.keySet();
     }
     
     public boolean isDecidable(int cid) {
