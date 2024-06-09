@@ -123,14 +123,11 @@ public class MonitoringDataSynchronizer {
                                     leadDelayed.add(i);
                                 long tmp = writeLatencies[i];
                                 writeLatencies[i]=Math.max(writeLatencies[i], ep.getWriteTimes()[i]-WestNew);
-                                //if(writeLatencies[i]>tmp)
-                                    //System.out.println("Write to "+i+" increased by "+NsToS(writeLatencies[i]-tmp));
                             }
                         }
                         else{
                             if(WestNew+(latestPropose[leader_index][i]+latestWrite[i][my_index])*coeff<acceptTime) {
                                 writeLatencies[i] = Monitor.MISSING_VALUE;
-                                //System.out.println("Write maxed to "+i);
                                 if(leader_index == currLeader)
                                     leadDelayed.add(i);
                             }
@@ -188,8 +185,6 @@ public class MonitoringDataSynchronizer {
                             long delay = ep.getAcceptTimes()[i] - Aest;
                             double ratio = (double) delay/(write[idx][i] + write[i][my_index]);
                             if(ratio>coeff){
-                                //if(leader_index == currLeader)
-                                //    leadDelayed.add(i);
                                 long tmp = writeLatencies[i];
                                 writeLatencies[i]=Math.max(writeLatencies[i], ep.getAcceptTimes()[i]-AestNew);
                                 if(writeLatencies[i]>tmp)
@@ -200,72 +195,16 @@ public class MonitoringDataSynchronizer {
                             if(AestNew+(latestWrite[idxn][i]+latestWrite[i][my_index])*coeff<cons.getDecision().firstMessageProposed.decisionTime) {
                                 writeLatencies[i] = Monitor.MISSING_VALUE;
                                 System.out.println("Accept maxed to "+i);
-                                //if(leader_index == currLeader)
-                                //    leadDelayed.add(i);
                             }
                         }
 
-                        //long delay = ep.getAcceptTimes()[i] - (estWriteArrival[idx] + write[i][my_index]);
-                        //double ratio = (double) delay/(write[idx][i] + write[i][my_index]);
-                        //if(!ep.getAcceptSetted()[i] || ratio>0.1){
-                        //    pq.clear();
-                        //    for(int j=0;j<ep.getWriteTimes().length; j++){
-                        //        if(!ep.getWriteSetted()[j] || latestWrite[j][my_index] == Monitor.MISSING_VALUE)
-                        //            continue;
-                        //        estWriteArrival[j] = ep.getWriteTimes()[j] - latestWrite[j][my_index] + latestWrite[j][i];
-                        //        pq.add(j);
-                        //    }
-                        //    collectedWeight = 0;
-                        //    while(collectedWeight - ((double) svc.getOverlayQuorum()) <= THRESHOLD){
-                        //        if(pq.isEmpty())
-                        //            continue acceptLoop;
-                        //        idx = pq.poll();
-                        //        collectedWeight += ep.getSumWeightsWrite()[idx];
-                        //    }
-                        //    if(ep.getAcceptSetted()[i]){
-                        //        long should = ep.getAcceptTimes()[i] - estWriteArrival[idx];
-                        //        //if(should>writeLatencies[i])
-                        //            //System.out.println("ACCEPT delay: "+NsToS(delay)+" from idx: "+i+" increase by: "+NsToS(should-writeLatencies[i]));
-                        //    }
-                        //    else{
-                        //        //TODO: add a lil of margin
-                        //        if(estWriteArrival[idx]+latestWrite[i][my_index]<cons.getDecision().firstMessageProposed.decisionTime){
-                        //            long tm1 = estWriteArrival[idx]+latestWrite[i][my_index];
-                        //            long tm2 = cons.getDecision().firstMessageProposed.decisionTime;
-                        //            //System.out.println("ACCEPT increated to inf : from idx: "+i+" because: "+tm1+"<"+tm2);
-                        //        }
-                        //    }
-                        //    //writeLatencies[i]=Math.max(writeLatencies[i], should);
-                        //}
                     }
                 } 
                 for(int i=0;i<writeSaved.length;i++){
                     if(writeLatencies[i]>writeSaved[i])
                         System.out.println("Dealay to: "+i+" increased by: "+ NsToS(writeLatencies[i]-writeSaved[i]));
                 }
-                if(leadDelayed.size() > svc.getStaticConf().getF()){
-                    //System.out.println("Curr leader: "+ currLeader + ": " + leadDelayed.size());
-                    //System.out.println("Leader CHAAAANGE");
-                }
-                //BYZANTINE nodes:
-                //Long lat = (long) 23;
-                //if(my_index == 2 ){
-                //    //Arrays.fill(writeLatencies, (long)22);
-                //    //Arrays.fill(proposeLatencies, (long)22);
-                //    writeLatencies[4] = lat;
-                //    proposeLatencies[4] = lat;
-                //}
-                //if(my_index == 4){
-                //    //Arrays.fill(writeLatencies, (long)22);
-                //    //Arrays.fill(proposeLatencies, (long)22);
-                //    writeLatencies[2] = lat;
-                //    proposeLatencies[2] = lat;
-                //}
-                //for(int i=0; i<viewN;i++){
-                //    System.out.println("Delayed by: " + NsToS(delays[i]) + " from: " + i);
-                //}
 
-                // Get freshest write latenciesfrom Monitor
 
                 Measurements li = new Measurements(svc.getCurrentViewN(), writeLatencies, proposeLatencies);
                 byte[] data = li.toBytes();
