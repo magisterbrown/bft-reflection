@@ -3,7 +3,7 @@
 # Function to start a process in the background
 start_process() {
     echo $1
-    ip netns exec clust$(( $1 + 1 )) java -Djava.security.properties="./config/java.security" -Dlogback.configurationFile="./config/logback.xml" -cp "build/install/library/lib/*"  bftsmart.demo.counter.CounterServer $1  &
+    java -Djava.security.properties="./config/java.security" -Dlogback.configurationFile="./config/logback.xml" -cp "build/install/library/lib/*"  bftsmart.demo.counter.CounterServer $1  &
     # Store the process ID (PID) in an array
     pids+=("$!")
     echo $pids
