@@ -122,7 +122,7 @@ public class MonitoringDataSynchronizer {
                                 if(leader_index == currLeader)
                                     leadDelayed.add(i);
                                 long tmp = writeLatencies[i];
-                                writeLatencies[i]=Math.max(writeLatencies[i], ep.getWriteTimes()[i]-(proposeTime - latestPropose[leader_index][my_index] + (latestPropose[leader_index][i]));
+                                writeLatencies[i]=Math.max(writeLatencies[i], ep.getWriteTimes()[i]-(proposeTime - latestPropose[leader_index][my_index] + latestPropose[leader_index][i]));
                             }
                         }
                         else{
