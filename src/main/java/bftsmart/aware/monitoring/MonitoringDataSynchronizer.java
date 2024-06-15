@@ -113,7 +113,7 @@ public class MonitoringDataSynchronizer {
                             continue;
 
                         long West =  proposeTime - propose[leader_index][my_index] + (propose[leader_index][i] + write[i][my_index]);
-                        long WestNew =  proposeTime - latestPropose[leader_index][my_index] + (latestPropose[leader_index][i] + latestWrite[i][my_index]);
+                        long WestNew = proposeTime - latestPropose[leader_index][my_index] + (latestPropose[leader_index][i] + latestWrite[i][my_index]);
 
                         if(ep.getWriteSetted()[i]){
                             long delay = ep.getWriteTimes()[i] - West;
@@ -122,7 +122,7 @@ public class MonitoringDataSynchronizer {
                                 if(leader_index == currLeader)
                                     leadDelayed.add(i);
                                 long tmp = writeLatencies[i];
-                                writeLatencies[i]=Math.max(writeLatencies[i], ep.getWriteTimes()[i]-WestNew);
+                                writeLatencies[i]=Math.max(writeLatencies[i], ep.getWriteTimes()[i]-(proposeTime - latestPropose[leader_index][my_index] + (latestPropose[leader_index][i]));
                             }
                         }
                         else{
@@ -186,7 +186,7 @@ public class MonitoringDataSynchronizer {
                             double ratio = (double) delay/(write[idx][i] + write[i][my_index]);
                             if(ratio>coeff){
                                 long tmp = writeLatencies[i];
-                                writeLatencies[i]=Math.max(writeLatencies[i], ep.getAcceptTimes()[i]-AestNew);
+                                writeLatencies[i]=Math.max(writeLatencies[i], ep.getAcceptTimes()[i]-estWriteArrival[idxn]);
                                 if(writeLatencies[i]>tmp)
                                     System.out.println("Accept to "+i+" increased by "+NsToS(writeLatencies[i]-tmp));
                             }
