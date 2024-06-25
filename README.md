@@ -1,3 +1,31 @@
+Reflection
+----------
+
+This is a fork of AWARE repo that implements Reflection algorithm modification. It make AWARE more resilient to performance degradation attacks. Code is implemented for TU Delft CSE3000 Reasearch project.
+
+There are multiple branches:
+ 1. `main` - just implementation of Reflection algorithm
+ 2. `network-setup` - adds only bash files to setup namespaces and run experiments.
+ 3. `attack-accept-aware` - experiment to test AWARE under attack when faulty nodes do not send ACCEPT messages.
+ 4. `attack-accept-reflection` - experiment to test Reflection under attack when faulty nodes do not send ACCEPT messages.
+ 5. `attack-dropall-reflection` - experiment to test Reflection under attack when faulty nodes do not send ACCEPT and WRITE messages.
+ 6. `attack-dropall-aware` - experiment to test AWARE under attack when faulty nodes do not send ACCEPT and WRITE messages.
+ 7. `userspace-main` - just main branch with experiment setup on a loopback device.
+ 8. `userspace-network-setup` - just AWARE branch with experiment setup on a loopback device.
+Network namespaces setup:
+
+```bash
+./setup_namespaces.sh # Creates separate namespace for every node
+./delay.sh # Adds delays to virtual cables connecting namespaces
+```
+Howto run experiments:
+
+```bash
+./dbrun.sh #Start node 0
+./child.sh #Start nodes 1-7
+./lient.sh #Run client that makes 300 requests
+```
+
 AWARE 0.2
 ----------
 
