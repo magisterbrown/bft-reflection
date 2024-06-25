@@ -12,6 +12,7 @@ There are multiple branches:
  6. `attack-dropall-aware` - experiment to test AWARE under attack when faulty nodes do not send ACCEPT and WRITE messages.
  7. `userspace-main` - just main branch with experiment setup on a loopback device.
  8. `userspace-network-setup` - just AWARE branch with experiment setup on a loopback device.
+
 Network namespaces setup:
 
 ```bash
